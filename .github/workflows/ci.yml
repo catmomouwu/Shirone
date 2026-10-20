@@ -77,6 +77,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 双仓模式：内容与配置在私有内容仓中，需先检出并物化才能诊断/构建。
+      - name: Checkout content
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: catmomouwu/shirone-content
+          ref: main
+          path: .content-src
+          token: ${{ secrets.CONTENT_REPO_TOKEN }}
+          persist-credentials: false
+
+      - name: Materialize content
+        run: pnpm content:sync
+        env:
+          CI: true
+          CONTENT_DIR: .content-src
+
       - name: Check Astro diagnostics
         run: pnpm exec astro check
 
@@ -122,6 +138,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 双仓模式：内容与配置在私有内容仓中，需先检出并物化才能诊断/构建。
+      - name: Checkout content
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: catmomouwu/shirone-content
+          ref: main
+          path: .content-src
+          token: ${{ secrets.CONTENT_REPO_TOKEN }}
+          persist-credentials: false
+
+      - name: Materialize content
+        run: pnpm content:sync
+        env:
+          CI: true
+          CONTENT_DIR: .content-src
+
       - name: Build production site
         run: pnpm build
 
@@ -153,6 +185,22 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # 双仓模式：内容与配置在私有内容仓中，需先检出并物化才能诊断/构建。
+      - name: Checkout content
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: catmomouwu/shirone-content
+          ref: main
+          path: .content-src
+          token: ${{ secrets.CONTENT_REPO_TOKEN }}
+          persist-credentials: false
+
+      - name: Materialize content
+        run: pnpm content:sync
+        env:
+          CI: true
+          CONTENT_DIR: .content-src
 
       - name: Run style regressions
         run: pnpm exec playwright test tests/site/fonts.spec.ts tests/site/inline-code-emphasis.spec.ts
