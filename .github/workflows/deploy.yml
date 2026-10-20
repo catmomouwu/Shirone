@@ -153,6 +153,10 @@ jobs:
           BILI_SESSDATA: ${{ secrets.BILI_SESSDATA }}
 
       # FTP 上传虚拟主机（与本地 ftpdeploy.sh 等价：lftp mirror --reverse）。
+      # mirror:size-only：只按文件大小判定差异。FTP 服务器存不住构建时间戳，
+      # 默认的「大小+时间」比对会让每次全量重传；Astro 构建是确定性的，
+      # 内容不变的产物字节与大小完全一致，即可跳过，实现增量上传。
+      # --parallel=8：并行传输 8 个文件；若虚拟主机限制连接数报错，调小即可。
       - name: Deploy to host via FTP
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -168,7 +172,8 @@ jobs:
           lftp -u "$FTP_USER","$FTP_PASS" "ftp://$FTP_HOST:${FTP_PORT:-21}" -e "
             set cmd:fail-exit yes;
             set ssl:verify-certificate no;
-            mirror --reverse --verbose dist/ ${FTP_REMOTE_DIR:-.};
+            set mirror:size-only 1;
+            mirror --reverse --parallel=8 --verbose dist/ ${FTP_REMOTE_DIR:-.};
             bye
           "
 
