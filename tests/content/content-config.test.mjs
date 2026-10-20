@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+	existsSync,
 	mkdirSync,
 	mkdtempSync,
 	readFileSync,
@@ -159,7 +160,10 @@ describe("读取内容仓配置", () => {
 			"site.yaml": "- 我是个数组\n",
 		});
 		try {
-			expectFailure(() => readConfigOverrides(directory), /must be a key-value mapping/i);
+			expectFailure(
+				() => readConfigOverrides(directory),
+				/must be a key-value mapping/i,
+			);
 		} finally {
 			rmSync(base, { recursive: true, force: true });
 		}
@@ -181,7 +185,10 @@ describe("读取内容仓配置", () => {
 			"site.yaml": "banner: &loop\n  homeText: *loop\n",
 		});
 		try {
-			expectFailure(() => readConfigOverrides(directory), /circular reference/i);
+			expectFailure(
+				() => readConfigOverrides(directory),
+				/circular reference/i,
+			);
 		} finally {
 			rmSync(base, { recursive: true, force: true });
 		}
@@ -200,7 +207,18 @@ describe("读取内容仓配置", () => {
 });
 
 describe("生成覆盖层模块", () => {
-	it("没有覆盖时与仓库里已提交的空模块完全一致", () => {
+	// 双仓模式：content:sync 会把外部内容仓的 YAML 覆盖写入生成文件，
+	// 该文件不再保持空模块（且通常不纳入版本控制）。存在内容源清单或
+	// 环境变量时跳过对已提交副本的断言，单仓模式的回归语义不受影响。
+	const hasExternalContentSource =
+		existsSync(new URL("../../shirone.content.json", import.meta.url)) ||
+		Boolean(process.env.CONTENT_DIR || process.env.CONTENT_REPO_URL);
+
+	it("没有覆盖时与仓库里已提交的空模块完全一致", {
+		skip:
+			hasExternalContentSource &&
+			"外部内容源模式下生成文件由 content:sync 物化",
+	}, () => {
 		const committed = readFileSync(
 			new URL(`../../${GENERATED_CONFIG_FILE}`, import.meta.url),
 			"utf8",
