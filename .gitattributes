@@ -1,0 +1,7 @@
+# 同步上游（LyraVoid/Shirone）时，.github/workflows 下的文件始终保留本仓库版本。
+# 本地 ci.yml 含双仓定制（检出内容仓并 content:sync 物化），直接取上游版本会让 CI 失效。
+#
+# merge=ours 驱动器是本地 Git 配置（不入库），克隆后需执行一次：
+#   git config merge.ours.driver true
+#   git config merge.ours.name "Keep our version"
+.github/workflows/* merge=ours
